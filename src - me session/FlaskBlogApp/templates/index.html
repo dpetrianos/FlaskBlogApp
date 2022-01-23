@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+    Index
+{% endblock title %}
+
+
+{% block content %} 
+
+{{ myuser.email}} : {{ myuser.profile_image }}   <!-- opote tha mas deixnei se morfh dictionary -->     <!-- session -->
+
+{% if articles %}
+
+ <ul>
+    {% for article in articles %}
+    <li>
+        [ {{ article.date_created.strftime('%d-%m-%Y')}} ] <br>
+        {{ article.article_title}} <br>
+        {{ article.article_body | truncate(200) }} <br>
+        {{ article.author.username}} <br>
+
+    </li>
+
+    {% endfor %}
+</ul>
+
+{% endif %}
+
+{% endblock content %}
+
+
