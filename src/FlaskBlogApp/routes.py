@@ -16,8 +16,9 @@ from flask_login import login_user, current_user, logout_user, login_required
 
 import secrets, os 
 
-# from PIL import Image
+from PIL import Image
 
+# Το size είναι ένα tuple της μορφής (640,480)
 def image_save(image, where, size):
     random_filename = secrets.token_hex(12)
     file_name, file_extension = os.path.splitext(image.filename)
@@ -25,6 +26,14 @@ def image_save(image, where, size):
     
     # where = 'profiles_images'
     image_path = os.path.join(app.root_path , 'static/images/', where,  image_filename)
+
+    img = Image.open(image)
+
+    img.thumbnail(size)
+    img.save(image_path)
+
+    return image_filename
+
 
 @app.route("/index/")
 @app.route("/")
@@ -34,7 +43,7 @@ def root():
     # if "user" in session:
     #     user = session["user"]
 
-    articles = Article.query.order_by(Article.date_created.desc())
+    articles = Article.query.order_by(Article.date_created.desc()).paginate(per_page=5, page=1)
     # articles = Article.query.all()
     # return render_template("index.html", articles=articles, myuser=user)    #session
     return render_template("index.html", articles=articles)
@@ -145,7 +154,18 @@ def new_article():
 
         # print(article_title, article_body)
         # article = Article(article_title=article_title, article_body=article_body, user_id=current_user.id)
-        article = Article(article_title=article_title, article_body=article_body, author=current_user)
+        if form.article_image.data:
+            try:
+                image_file =  image_save(form.article_image.data, 'articles_images', (640,360))
+            except:
+                abort(415)  # 418 The server is a  teapot not coffee machine
+            article = Article(article_title=article_title, 
+                              article_body=article_body, 
+                              author=current_user,
+                              article_image=image_file)
+        else:
+            article = Article(article_title=article_title, article_body=article_body, author=current_user)
+       
         db.session.add(article)
         db.session.commit()
         flash(f"Το άρθρο με τίτλο <b>{article.article_title}</b> δημιουργήθηκε με επιτυχία","success")
@@ -192,10 +212,15 @@ def account():
         current_user.username = form.username.data
         current_user.email = form.email.data
 
-        profile_image =  form.profile_image.data
-        print(profile_image)
+        #  image_save(image, where, size)
 
-        
+        if form.profile_image.data:
+            try:
+                image_file =  image_save(form.profile_image.data, 'profiles_images', (150,150))
+            except:
+                abort(415)  # 418 The server is a  teapot not coffee machine
+            current_user.profile_image = image_file
+
         db.session.commit()
 
         flash(f"Ο λογαριασμός του χρήστη <b> { current_user.username } </b> ενημερώθηκε με επιτυχία", "success")
@@ -222,6 +247,14 @@ def edit_article(article_id):
     if request.method == 'POST' and form.validate_on_submit():
         article.article_title = form.article_title.data
         article.article_body = form.article_body.data
+
+        if form.article_image.data:
+            try:
+                image_file =  image_save(form.article_image.data, 'articles_images', (640,360))
+            except:
+                abort(415)  # 418 The server is a  teapot not coffee machine
+            
+            article.article_image = image_file
 
         db.session.commit()
 
