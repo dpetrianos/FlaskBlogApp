@@ -18,6 +18,18 @@ import secrets, os
 
 from PIL import Image
 
+
+@app.errorhandler(404)
+def page_not_found(e):
+    # note that we set the 404 status explicitly
+    return render_template('errors/404.html'), 404
+
+@app.errorhandler(415)
+def unsupported_medias_type(e):
+    # note that we set the 415 status explicitly
+    return render_template('errors/415.html'), 415
+
+
 # Το size είναι ένα tuple της μορφής (640,480)
 def image_save(image, where, size):
     random_filename = secrets.token_hex(12)
@@ -42,8 +54,8 @@ def root():
     # user = None
     # if "user" in session:
     #     user = session["user"]
-
-    articles = Article.query.order_by(Article.date_created.desc()).paginate(per_page=5, page=1)
+    page = request.args.get("page", 1, type=int)
+    articles = Article.query.order_by(Article.date_created.desc()).paginate(per_page=5, page=page)
     # articles = Article.query.all()
     # return render_template("index.html", articles=articles, myuser=user)    #session
     return render_template("index.html", articles=articles)
@@ -54,7 +66,9 @@ def root():
 def articles_by_author(author_id):
 
     user = User.query.get_or_404(author_id)
-    articles = Article.query.filter_by(author=user).order_by(Article.date_created.desc())
+
+    page = request.args.get("page", 1, type=int)
+    articles = Article.query.filter_by(author=user).order_by(Article.date_created.desc()).paginate(per_page=5, page=page)
 
     return render_template("articles_by_author.html", articles=articles, author=user)
 

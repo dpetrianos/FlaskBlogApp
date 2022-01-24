@@ -42,6 +42,22 @@
         <hr>    
 
     {% endfor %}
+
+    <!-- left_edge=2, right_edge=2, left_current=1, right_current=1 -->
+    {% for page_number in articles.iter_pages(left_edge=2, right_edge=2, left_current=1, right_current=1) %}
+
+        {% if page_number %}
+            {% if page_number == articles.page %}
+                <a class="btn btn-primary" href="{{ url_for('root', page=page_number) }}"> {{ page_number}}</a>
+            {% else %}
+                <a class="btn btn-outline-primary" href="{{ url_for('root', page=page_number) }}"> {{ page_number}}</a>
+            {% endif %}
+        {% else %}
+            <span>...</span>
+        {% endif %}
+    {% endfor %}
+
+
 {% endif %}
 
 {% endblock content %}
