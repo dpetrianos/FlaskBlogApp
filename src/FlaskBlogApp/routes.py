@@ -67,6 +67,11 @@ def articles_by_author(author_id):
 
     user = User.query.get_or_404(author_id)
 
+    # print(user)
+    # articles = Article.query.filter_by(author=current_user).all()
+    # print(articles)
+    # print(current_user)
+
     page = request.args.get("page", 1, type=int)
     articles = Article.query.filter_by(author=user).order_by(Article.date_created.desc()).paginate(per_page=5, page=page)
 
@@ -219,6 +224,7 @@ def delete_article(article_id):
 @login_required
 def account():
     form = AccountUpdateForm(username=current_user.username, email=current_user.email)
+    # form = AccountUpdateForm()
     # form.username.data = current_user.username
     # form.email.data = current_user.email
 
